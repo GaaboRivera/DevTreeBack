@@ -1,0 +1,6 @@
+{
+	"extends": ["eslint:recommended", "plugin:prettier/recommended"],
+	"rules": {
+		"newline-per-chained-call": ["error", { "ignoreChainWithDepth": 1 }]
+	}
+}
