@@ -6,7 +6,7 @@ import { hashPassword } from '../utils/auth';
 import { validationResult } from 'express-validator';
 
 export const createAccount = async (req: Request, res: Response) => {
-	const { email, password, handle } = req.body;
+	const { email, password } = req.body;
 
 	const emailExists = await User.findOne({ email });
 	if (emailExists) {
@@ -15,18 +15,18 @@ export const createAccount = async (req: Request, res: Response) => {
 		return;
 	}
 
-	const handleUser = slug(handle);
-	const handleExists = await User.findOne({ handleUser });
+	const handle = slug(req.body.handle, '');
+	const handleExists = await User.findOne({ handle });
 
 	if (handleExists) {
 		const error = new Error('El usuario ya existe');
 		res.status(409).json({ error: error.message });
 		return;
 	}
-
+	console.log('aqui');
 	const user = new User(req.body);
-	user.password = await hashPassword(password);
-	user.handle = handleUser;
+	user.password = await hashPassword(req.body.password);
+	user.handle = handle;
 
 	await user.save();
 	//   res.status(201).json(user);
