@@ -4,6 +4,7 @@ import slug from 'slug';
 import User from '../models/User';
 import { hashPassword } from '../utils/auth';
 import { validationResult } from 'express-validator';
+import { generateJWT } from '../utils/jwt';
 
 export const createAccount = async (req: Request, res: Response) => {
 	const { email, password } = req.body;
@@ -23,7 +24,7 @@ export const createAccount = async (req: Request, res: Response) => {
 		res.status(409).json({ error: error.message });
 		return;
 	}
-	console.log('aqui');
+
 	const user = new User(req.body);
 	user.password = await hashPassword(req.body.password);
 	user.handle = handle;
@@ -52,5 +53,8 @@ export const login = async (req: Request, res: Response) => {
 		res.status(401).json({ error: error.message });
 		return;
 	}
-	res.send('autenticado');
+
+	const token = generateJWT({ id: user.id });
+
+	res.send(token);
 };
