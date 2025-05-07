@@ -1,11 +1,12 @@
-import jwt from 'jsonwebtoken';
 import { checkPass } from './../utils/auth';
-import { request, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import slug from 'slug';
 import User from '../models/User';
 import { hashPassword } from '../utils/auth';
-import { validationResult } from 'express-validator';
 import { generateJWT } from '../utils/jwt';
+import formidable from 'formidable';
+import cloudinary from '../config/cloudinary';
+import { v4 as uuid } from 'uuid';
 
 export const createAccount = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -84,6 +85,42 @@ export const updateProfile = async (req: Request, res: Response) => {
     return;
   } catch (e) {
     const error = new Error('Error');
+    res.status(500).json({ error: error.message });
+    return;
+  }
+};
+
+export const uploadImage = async (req: Request, res: Response) => {
+  const form = formidable({ multiples: false, keepExtensions: true });
+  try {
+    form.parse(req, (error, fields, files) => {
+      if (error) {
+        console.error('error al parsear', error);
+        res.status(500).json({ error: 'Error al subir el archivo' });
+        return;
+      }
+      cloudinary.uploader.upload(
+        files.file[0].filepath,
+        {
+          public_id: uuid(),
+        },
+        async function (err, result) {
+          if (err) {
+            const error = new Error('Hubo un error al subir la imagen');
+            res.status(500).json({ error: error.message });
+            return;
+          }
+          if (result) {
+            req.user.image = result.secure_url;
+            await req.user.save();
+
+            res.json({ image: result.secure_url });
+          }
+        },
+      );
+    });
+  } catch (e) {
+    const error = new Error('Error al subir archivo');
     res.status(500).json({ error: error.message });
     return;
   }
