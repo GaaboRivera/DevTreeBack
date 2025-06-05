@@ -1,5 +1,5 @@
 import { checkPass } from './../utils/auth';
-import { Request, Response } from 'express';
+import { request, Request, Response } from 'express';
 import slug from 'slug';
 import User from '../models/User';
 import { hashPassword } from '../utils/auth';
@@ -120,6 +120,25 @@ export const uploadImage = async (req: Request, res: Response) => {
         },
       );
     });
+  } catch (e) {
+    const error = new Error('Error al subir archivo');
+    res.status(500).json({ error: error.message });
+    return;
+  }
+};
+
+export const getUserByHandle = async (req: Request, res: Response) => {
+  try {
+    const { handle } = req.params;
+    const user = await User.findOne({ handle }).select(
+      '-_id -__v -email -password',
+    );
+    if (!user) {
+      const error = new Error('El usuario no existe');
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    res.json(user);
   } catch (e) {
     const error = new Error('Error al subir archivo');
     res.status(500).json({ error: error.message });

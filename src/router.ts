@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createAccount,
   getUser,
+  getUserByHandle,
   login,
   updateProfile,
   uploadImage,
@@ -45,5 +46,7 @@ router.patch(
 );
 
 router.post('/user/image', authenticate, uploadImage);
+
+router.get('/:handle', getUserByHandle);
 
 export default router;
